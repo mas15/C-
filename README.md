@@ -1,7 +1,7 @@
 # C++
 My c++ programs
 
-# Permuted Index
+## Permuted Index
 My first program with vectors. I guess that could be done better. There are two ways of solving a problem. One is mine and second one is alrogithm that was recommended in the book.
 
 Task is:
