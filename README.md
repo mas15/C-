@@ -9,11 +9,11 @@ Design and implement a program to produce a permuted index from the following in
 For input "The quick brown fox jumped over the fence"
 Should be an output:
 
-     The quick      brown fox 
+"     The quick      brown fox 
 jumped over the     fence
 The quick brown     fox 
                     jumped over the fence
          jumped     over the fence
             The     quick brown fox 
     jumped over     the fence
-                    The quick brown fox
+                    The quick brown fox"
