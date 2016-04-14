@@ -19,3 +19,6 @@ Should be an output:
                 The     quick brown fox 
         jumped over     the fence
                         The quick brown fox
+
+## Grids
+Program reads in data from two text files (included as poses.txt and ranges.txt), and output a grid to stdout or show the result using graphical interface
