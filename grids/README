@@ -1,0 +1,56 @@
+CS22510 assignment
+Mateusz Stankiewicz
+mas15@aber.ac.uk
+
+
+Project needs C++ 11.
+Standard libraries I used are: iostream, vector, sstream, math, chrono and thread.
+
+Command to build console version is:
+
+    g++ -std=c++11 Grid.cpp RobotReadings.cpp main.cpp
+
+To run graphical interface my code requires library allegro version 5
+To build GUI version:
+
+    g++ -std=c++11 -lallegro -lallegro_primitives Grid.cpp RobotReadings.cpp guiMain.cpp
+
+Example input files that are in a folder are "poses.txt" and "ranges.txt".
+
+There is no specific environment on which code needs to be run. It can be run on Windows, Linux or OS X.
+
+Project files:
+
+1. Grid.h and Grid.cpp
+
+    These files includes Grid class and Cell structure.
+
+    Grid class represents a grid of cells.
+    Class consists of two-dimensional array of cellIndexType.
+
+2. RobotReadings.h and RobotReadings.cpp
+
+    These files include RobotReadings structure.
+    It consists of robot coordinates,
+    degree of rotation and a vector of sensor readings.
+
+3. Coordinate.h
+
+    This file stores Coordinate structure.
+
+4. main.cpp
+
+    It is a file that has got main() function.
+    It creates new Grid object, fills it with data read from files that are provided by user and displays a grid.
+
+5. poses.txt and ranges.txt
+
+    These are example files of poses and ranges.
+
+6. OUTPUT
+
+    This is an example of the output. ( “animation” saved in a text file )
+
+7. Screencast.mkv
+
+    Demo of a program.
