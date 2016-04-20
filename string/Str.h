@@ -18,7 +18,11 @@ class Str {
     friend std::istream &operator>>(std::istream &, Str &);
     friend Str operator+(const Str &, const Str &);
 
+
+
+
 public:
+    typedef char* iterator;
     typedef size_t size_type;
 
     Str() { }
@@ -81,7 +85,8 @@ public:
         std::copy(data, data+n, p);
     }
 
-
+    char* begin(){return data;};
+    char* end(){ return data+length;};
 
 private:
     char *data;
