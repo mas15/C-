@@ -9,53 +9,61 @@
 #include <cstring>
 #include <iostream>
 
-using std::strlen;
-using std::allocator;
-
 
 class Str {
-    friend std::ostream &operator<<(std::ostream &, const Str &);
+
     friend std::istream &operator>>(std::istream &, Str &);
-    friend Str operator+(const Str &, const Str &);
 
-
+    friend void swap(Str &s, Str &t) {
+        std::swap(s.data, t.data);
+        std::swap(s.length, t.length);
+        std::swap(s.alloc, t.alloc);
+    }
 
 
 public:
-    typedef char* iterator;
+    typedef char *iterator;
     typedef size_t size_type;
 
-    Str() { }
+    Str() : data(nullptr), length(0), capacity(0) { }
 
-    Str(size_type n, char c) { create(n, c); }
+    Str(size_type length, char char_to_fill) : Str() { create(length, char_to_fill); }
 
-    Str(const char *s) { create(s); }
+    Str(const char *s) : Str() { create(s); }
 
     template<class In>
-    Str(In b, In e) {create(b,e); }
+    Str(In b, In e) : Str() { create(b, e); }
 
     ~Str() {
-        if (data) alloc.deallocate(data, length);
-        data = 0;
-        length = 0;
+        if (data) alloc.deallocate(data, capacity);
+        data = nullptr;
+    }
+
+    Str(const Str &s) {
+        *this = s;
+    }
+
+    // move constructor?
+    Str(Str &&other)
+            : Str() {// initialize via default constructor, C++11 only
+        swap(*this, other);
     }
 
     Str &operator+=(const Str &s) {
-        size_type new_length = s.length + length - 1; //remove 1 because of 2 nulls
-        char *new_data = alloc.allocate(new_length);
-        strcpy(new_data, data);
-        strcpy(new_data + length - 1, s.data); //overwrite null from s
-        data = new_data;
+        size_type new_length = length + s.length - 1; //remove 1 because of 2 nulls
+        if (new_length > capacity) {
+            reallocate(new_length);
+            strcpy(data + length - 1, s.data); //overwrite null from s
+        }
+        else {//if there was already enough space
+            strcpy(data + length - 1, s.data);
+        }
         length = new_length;
         return *this;
     }
 
-    Str &operator=(const Str &rhs) {
-        if (&rhs != this) {
-            if (data) alloc.deallocate(data, length);
-            create(rhs.data);
-        }
-
+    Str &operator=(Str rhs) {
+        swap(*this, rhs);
         return *this;
     }
 
@@ -67,66 +75,77 @@ public:
 
     const size_type size() const { return length; }
 
-    const char* c_str(){
-        char* result = alloc.allocate(length);
-        std::uninitialized_copy(data, data+length, result);
-        return result;
+    const char *c_str() const {
+        return data;
     }
 
-    const char* rawdata(){
-        char* result = alloc.allocate(length-1);
-        std::uninitialized_copy(data, data+length-1, result);
-        return result;
-    }
-
-    void copy(char *p, size_type n){
-        if(n>length)
+    void copy(char *dest, size_type n) {
+        if (n > length)
             throw std::out_of_range("Out of range");
-        std::copy(data, data+n, p);
+        std::copy(data, data + n, dest);
+        dest[n] = '\0';
     }
 
-    char* begin(){return data;};
-    char* end(){ return data+length;};
+    char *begin() { return data; };
+
+    char *end() { return data + length; };
+
+    void push_back(char c) {
+        if (length == capacity) {
+            reallocate(capacity == 0 ? DEFAULT_CAPACITY : 2 * capacity);
+        }
+        data[length++ - 1] = c;
+        data[length - 1] = 0;
+    }
 
 private:
     char *data;
-    allocator<char> alloc;
+    std::allocator<char> alloc;
     size_type length;
+    size_type capacity;
+    static const size_type DEFAULT_CAPACITY = 20;
 
-    void create(size_type n, char c) {
-        length = n + 1;
-        data = alloc.allocate(length);
-        std::uninitialized_fill(data, data + length - 1, c);
-        alloc.construct(data + length - 1, '\0');
+    void create(size_type n, char character_to_fill) {
+        capacity = length = n + 1;
+        data = alloc.allocate(capacity);
+        std::uninitialized_fill(data, data + length - 1, character_to_fill);
+        data[length - 1] = '\0';
     }
 
     void create(const char *s) {
-        length = strlen(s) + 1;
-        data = alloc.allocate(length);
+        capacity = length = strlen(s) + 1;
+        data = alloc.allocate(capacity);
         strcpy(data, s);
-        alloc.construct(data + length - 1, '\0');
+        data[length - 1] = '\0';
     }
 
     template<class In>
-    void create(In b, In e){
-        length = e - b + 1;
-        data = alloc.allocate(length);
-        size_type i = 0;
+    void create(In b, In e) {
+        capacity = e - b + 1;
+        data = alloc.allocate(capacity);
         while (b != e) {
-            data[i++] = *(b++);
+            data[length++] = *(b++);
         }
-        alloc.construct(data + length - 1, '\0');
+        data[length++] = '\0';
+    }
+
+    void reallocate(size_t new_capacity) {
+        char *new_data = alloc.allocate(new_capacity);
+        std::copy(data, data + length, new_data);
+        alloc.deallocate(data, length);
+        data = new_data;
+        capacity = new_capacity;
     }
 };
 
 std::istream &operator>>(std::istream &is, Str &s) {
     std::vector<char> buf;
-    char c;
-    while (is.get(c) && isspace(c)) { ;
+    char actual_character;
+    while (is.get(actual_character) && isspace(actual_character)) { ;
     }
-    if (is) {
-        do buf.push_back(c);
-        while (is.get(c) && !isspace(c));
+    if (is) { //is it correct to check "is" ?
+        do buf.push_back(actual_character);
+        while (is.get(actual_character) && !isspace(actual_character));
         if (is)
             is.unget();
     }
@@ -135,17 +154,13 @@ std::istream &operator>>(std::istream &is, Str &s) {
 }
 
 std::ostream &operator<<(std::ostream &os, const Str &s) {
-    os << s.data;
+    os << s.c_str();
     return os;
 }
 
-Str operator+(const Str &s, const Str &t) {
-    Str res;
-    res.length = s.length + t.length - 1;
-    res.data = res.alloc.allocate(res.length);
-    strcpy(res.data, s.data);
-    strcpy(res.data + s.length - 1, t.data);
-    return res;
+Str operator+(Str lhs, const Str &rhs) {
+    lhs += rhs;
+    return lhs;
 }
 
 #endif //STRINGCLASS_STR_H
